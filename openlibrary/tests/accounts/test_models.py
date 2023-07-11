@@ -1,6 +1,8 @@
 from openlibrary.accounts import model, InternetArchiveAccount, OpenLibraryAccount
 from requests.models import Response
 from unittest import mock
+import unittest
+from unittest.mock import patch
 
 
 def get_username(account):
@@ -97,3 +99,35 @@ def test_get(mock_web):
     key = f'test/{retrieved_username}'
     retrieved_account = OpenLibraryAccount.get(key=key, test=test)
     assert retrieved_account
+
+
+@mock.patch("openlibrary.accounts.model.web")
+class AccountTestCase(unittest.TestCase):
+    def test_delete_account(self, mock_web):
+        test = True
+        email = "test@example.com"
+        account = OpenLibraryAccount.get_by_email(email)
+        assert account is None
+
+        test_account_data = {
+            "itemname": "@test",
+            "email": "test@example.com",
+            "username": "test",
+            "displayname": "Test User",
+            "test": test,
+        }
+        test_account = OpenLibraryAccount(test_account_data)
+
+        mock_site = mock_web.ctx.site
+        mock_site.store.get.return_value = test_account_data
+
+        # Mock the store delete method
+        with mock.patch('openlibrary.accounts.model.web.ctx.site.store') as mock_store:
+            mock_store.delete.return_value = True
+
+            # Call the delete method
+            test_account.delete()
+
+            account = OpenLibraryAccount.get_by_email(email)
+
+            assert account is None
