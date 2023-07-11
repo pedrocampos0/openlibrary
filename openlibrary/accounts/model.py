@@ -598,6 +598,9 @@ class OpenLibraryAccount(Account):
         else:
             return "ok"
 
+    def delete(self):  # simulação de exclusão da conta
+        web.ctx.site.store.delete()
+
 
 class InternetArchiveAccount(web.storage):
     def __init__(self, **kwargs):
